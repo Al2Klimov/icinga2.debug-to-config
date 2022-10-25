@@ -1,5 +1,9 @@
 use netstring::ReadNetstring;
 use netstring::Shutdown;
+use serde::Deserialize;
+use serde_json::Map;
+use serde_json::Value;
+use serde_json::from_str;
 use std::io::Error;
 use std::io::ErrorKind::ConnectionAborted;
 use std::io::ErrorKind::Unsupported;
@@ -23,12 +27,22 @@ impl Shutdown for ShutdownableStdin {
     }
 }
 
+#[derive(Deserialize)]
+struct Object {
+    r#type: String,
+    name: String,
+    properties: Map<String, Value>,
+}
+
 fn main() -> Result<()> {
     let mut stdin = ShutdownableStdin(stdin().lock());
 
     loop {
         match stdin.read_netstring() {
-            Ok(str) => { println!("{}", str); }
+            Ok(str) => {
+                let o: Object = from_str(str.as_str())?;
+                println!("{} {}", o.r#type, o.name);
+            }
             Err(err) => {
                 return match err.kind() {
                     ConnectionAborted => Ok(()),
