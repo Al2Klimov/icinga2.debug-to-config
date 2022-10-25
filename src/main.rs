@@ -104,6 +104,13 @@ fn write_icinga_val(w: &mut impl Write, v: &Value) -> Result<()> {
         }
 
         Value::Object(obj) => {
+            if let Some(typ) = obj.get("type") {
+                if typ == "Function" {
+                    w.write("() => {}".as_ref())?;
+                    return Ok(());
+                }
+            }
+
             w.write("{ ".as_ref())?;
 
             for (k, v) in obj.iter() {
