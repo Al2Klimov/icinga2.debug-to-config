@@ -68,7 +68,6 @@ fn write_icinga_object(w: &mut impl Write, o: &Object) -> Result<()> {
     for (attr, val) in o.properties.iter() {
         match attr.as_str() {
             "__name" => {}
-            "name" => {}
             "package" => {}
             "source_location" => {}
             "templates" => {}
