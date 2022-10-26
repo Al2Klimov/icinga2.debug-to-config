@@ -130,9 +130,24 @@ fn write_icinga_val(w: &mut impl Write, v: &Value) -> Result<()> {
 }
 
 fn write_icinga_str(w: &mut impl Write, s: &String) -> Result<()> {
-    w.write("{{{".as_ref())?;
-    w.write(s.as_bytes())?;
-    w.write("}}}".as_ref())?;
+    w.write("\"".as_ref())?;
+
+    let mut last_one_is_oct_escape = false;
+
+    for c in s.as_bytes() {
+        let c = c.clone();
+
+        if c < ' ' as u8 || c == '"' as u8 || c == '\\' as u8 || c > '~' as u8
+            || (last_one_is_oct_escape && c >= '0' as u8 && c <= '9' as u8) {
+            w.write_fmt(format_args!("\\{:o}", c))?;
+            last_one_is_oct_escape = true;
+        } else {
+            w.write(&[c])?;
+            last_one_is_oct_escape = false;
+        }
+    }
+
+    w.write("\"".as_ref())?;
 
     Ok(())
 }
